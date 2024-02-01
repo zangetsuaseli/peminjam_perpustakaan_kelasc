@@ -1,19 +1,16 @@
-import 'dart:developer';
-import 'package:dio/dio.dart' as dio;
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:peminjam_perpustakaan_kelasc/app/data/constant/endpoint.dart';
-import 'package:peminjam_perpustakaan_kelasc/app/data/model/response_login.dart';
 import 'package:peminjam_perpustakaan_kelasc/app/data/provider/storage_provider.dart';
 import 'package:peminjam_perpustakaan_kelasc/app/data/provider/api_provider.dart';
 import 'package:peminjam_perpustakaan_kelasc/app/routes/app_pages.dart';
 
-class LoginController extends GetxController {
+class AddPeminjamanController extends GetxController {
   final loading = false.obs;
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
+  final TextEditingController tanggalPinjamController = TextEditingController();
+  final TextEditingController tanggalKembaliController = TextEditingController();
 
   final count = 0.obs;
   @override
@@ -24,11 +21,6 @@ class LoginController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    String status = StorageProvider.read(StorageKey.status);
-    log("status : $status");
-    if(status == "logged"){
-      Get.offAllNamed(Routes.HOME);
-    }
   }
 
   @override
@@ -36,28 +28,28 @@ class LoginController extends GetxController {
     super.onClose();
   }
 
-  void increment() => count.value++;
-
-  login() async {
+  post() async {
     loading(true);
     try {
       FocusScope.of(Get.context!).unfocus();// close keyboard
       formkey.currentState?.save();
       if (formkey.currentState!.validate()) {
-        final response = await ApiProvider.instance().post(Endpoint.login,
-            data: dio.FormData.fromMap(
-                {"username": usernameController.text.toString(),
-                  "password": passwordController.text.toString()}));
-        if (response.statusCode == 200) {
-          ResponseLogin responseLogin = ResponseLogin.fromJson(response.data);
-          await StorageProvider.write(StorageKey.iduser, responseLogin.data!.id!.toString());
-          await StorageProvider.write(StorageKey.status,"logged");
-          Get.offAllNamed(Routes.HOME);
+        final response = await ApiProvider.instance().post(Endpoint.pinjam,
+            data: {
+              "user_id": StorageProvider.read(StorageKey.iduser),
+              "book_id": Get.parameters['id'],
+              "tanggal_pinjam": tanggalPinjamController.text.toString(),
+              "tanggal_kembali": tanggalKembaliController.text.toString()
+
+            }
+        );
+        if (response.statusCode == 201) {
+          Get.back();
         } else {
-          Get.snackbar("sorry","Login Gagal", backgroundColor: Colors.orange);
+          Get.snackbar("sorry","Gagal menambahkan", backgroundColor: Colors.orange);
         }
       }loading(false);
-    } on dio.DioException catch (e) {loading(false);
+    } on DioException catch (e) {loading(false);
     if (e.response != null){
       if (e.response?.data != null){
         Get.snackbar("Sorry", "{${e.response?.data['message']}", backgroundColor: Colors.orange);

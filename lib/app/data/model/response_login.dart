@@ -81,4 +81,5 @@ class DataLogin {
     map['updated_at'] = updatedAt;
     return map;
   }
+
 }

@@ -9,16 +9,25 @@ class PeminjamanView extends GetView<PeminjamanController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('PeminjamanView'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'PeminjamanView is working',
-          style: TextStyle(fontSize: 20),
+        appBar: AppBar(
+          title: const Text('Peminjaman View'),
+          centerTitle: true,
         ),
-      ),
+        body: controller.obx((state) => ListView.separated(
+          itemCount: state!.length,
+          itemBuilder: (context, index){
+            return ListTile(
+              title: Text("${state[index].book?.judul}"),
+              subtitle: Text(
+                  "Status: ${state[index].status}, "
+                      "Peminjam: ${state[index].userId}"
+              ),
+            );
+          },
+          separatorBuilder: (context, index){
+            return Divider();
+          },
+        ))
     );
   }
 }
